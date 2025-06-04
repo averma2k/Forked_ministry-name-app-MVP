@@ -1,4 +1,14 @@
 // dependecies
+console.log('ministryController.js: Loading controller file.'); // <--- ADD THIS LINE
+const pool = require("../../db/dbConnectionConfig.js");
+const {
+  fetchData,
+  setIsCurrentFalse,
+} = require("../../utils/helperfunctions.js");
+const asyncHandler = require("express-async-handler");
+const { queryMinistry } = require("../../db/queries.js");
+
+ // dependecies
 const pool = require("../../db/dbConnectionConfig.js");
 const {
   fetchData,
