@@ -7,17 +7,66 @@
  * @throws {Error} Error if query fails
  */
 const fetchData = async (pool, sqlQuery) =>{
-  // get client from db pool
-  const client = await pool.connect();
+  let client; // Declare client here so it's accessible in finally block
   try{
+    console.log('Attempting to get client from pool...');
+    client = await pool.connect();
+    console.log('Client obtained. Executing query:', sqlQuery);
     const result = await client.query(sqlQuery);
+    console.log('Query executed successfully. Rows returned:', result.rows.length);
     return result;
   }catch (err){
-    console.error('Error executing fetchData()', err.stack);
-    // Utility functions should re-throw errors for the calling function to handle the response
-    throw err; // <--- CHANGED THIS
+    console.error('Error executing fetchData() for query:', sqlQuery, 'Error:', err.stack || err.message || err);
+    throw err;
   }finally{
-    client.release();
+    if (client) { // Ensure client exists before releasing
+      client.release();
+      console.log('Client released.');
+    }
+  }
+};
+
+// ... (rest of your helperfunctions.js file)
+
+const setIsCurrentFalse = async(pool, minId)=>{
+  let client;
+  try{
+    console.log(`Attempting to retire ministry ID: ${minId}`);
+    client = await pool.connect();
+    let queryRetire = `UPDATE ministry SET is_current = false WHERE ministry_id = '${minId}';`
+    console.log('Executing retire query:', queryRetire);
+    const result = await client.query(queryRetire);
+    console.log('Retire query executed successfully.');
+    return result;
+  }catch (err){
+    console.error('Error executing setIsCurrentFalse() for ID:', minId, 'Error:', err.stack || err.message || err);
+    throw err;
+  }finally{
+    if (client) {
+      client.release();
+      console.log('Client released after setIsCurrentFalse.');
+    }
+  }
+};
+
+const updateHistory = async(pool, minCurrentId, minHistoryId) =>{
+  let client;
+  try{
+    console.log(`Attempting to update history for current ID: ${minCurrentId}, history ID: ${minHistoryId}`);
+    client = await pool.connect();
+    const queryUpdateHistory = `INSERT INTO ministry_history(ministry_id, ministry_id_history) VALUES('<span class="math-inline">\{minCurrentId\}','</span>{minHistoryId}');`
+    console.log('Executing update history query:', queryUpdateHistory);
+    const result = await client.query(queryUpdateHistory);
+    console.log('Update history query executed successfully.');
+    return result;
+  }catch (err){
+    console.error('Error executing updateHistory() for IDs:', minCurrentId, minHistoryId, 'Error:', err.stack || err.message || err);
+    throw err;
+  }finally{
+    if (client) {
+      client.release();
+      console.log('Client released after updateHistory.');
+    }
   }
 };
 
@@ -90,7 +139,26 @@ const setIsCurrentFalse = async(pool, minId)=>{
     client.release();
   }
 };
-
+const setIsCurrentFalse = async(pool, minId)=>{
+  let client;
+  try{
+    console.log(`Attempting to retire ministry ID: ${minId}`);
+    client = await pool.connect();
+    let queryRetire = `UPDATE ministry SET is_current = false WHERE ministry_id = '${minId}';`
+    console.log('Executing retire query:', queryRetire);
+    const result = await client.query(queryRetire);
+    console.log('Retire query executed successfully.');
+    return result;
+  }catch (err){
+    console.error('Error executing setIsCurrentFalse() for ID:', minId, 'Error:', err.stack || err.message || err);
+    throw err;
+  }finally{
+    if (client) {
+      client.release();
+      console.log('Client released after setIsCurrentFalse.');
+    }
+  }
+};
 //TODO: UPDATE THIS TO TAKE AN ARRAY AS PARAM SO MORE THAN ONE HISTORY LINE CAN BE INSERTED WITH THIS FUNCTION CALL.
 const updateHistory = async(pool, minCurrentId, minHistoryId) =>{
   const queryUpdateHistory = `INSERT INTO ministry_history(ministry_id, ministry_id_history) VALUES('<span class="math-inline">\{minCurrentId\}','</span>{minHistoryId}');`
